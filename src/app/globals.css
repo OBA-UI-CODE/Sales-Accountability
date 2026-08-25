@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+:root {
+  /* Surfaces */
+  --color-surface-base: #0b0e1a;
+  --color-surface-elevated: #172140;
+  --color-surface-card: #131a2c;
+  --color-surface-input: #101832;
+
+  /* Borders */
+  --color-border-subtle: #26304a;
+  --color-border-accent: #3d7dff;
+
+  /* Accent */
+  --color-accent-blue: #3d7dff;
+  --color-accent-blue-strong: #1e56d6;
+
+  /* Text */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #aeb8d4;
+  --color-text-muted: #6e7893;
+
+  /* Semantic */
+  --color-success-bg: #16321f;
+  --color-success-text: #4ade80;
+  --color-danger-bg: #3a1620;
+  --color-danger-text: #ff6b6b;
+
+  /* Misc */
+  --color-icon-circle-bg: #232b45;
+}
+
+@theme inline {
+  --color-surface-base: var(--color-surface-base);
+  --color-surface-elevated: var(--color-surface-elevated);
+  --color-surface-card: var(--color-surface-card);
+  --color-surface-input: var(--color-surface-input);
+
+  --color-border-subtle: var(--color-border-subtle);
+  --color-border-accent: var(--color-border-accent);
+
+  --color-accent-blue: var(--color-accent-blue);
+  --color-accent-blue-strong: var(--color-accent-blue-strong);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+
+  --color-success-bg: var(--color-success-bg);
+  --color-success-text: var(--color-success-text);
+  --color-danger-bg: var(--color-danger-bg);
+  --color-danger-text: var(--color-danger-text);
+
+  --color-icon-circle-bg: var(--color-icon-circle-bg);
+
+  --font-sans: "Roboto", Arial, Helvetica, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-surface-base);
+  color: var(--color-text-primary);
+  font-family: "Roboto", Arial, Helvetica, sans-serif;
+}
+
+/* Hide number input spinners so the qty stepper looks intentional */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
