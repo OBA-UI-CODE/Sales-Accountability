@@ -7,7 +7,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "SaleBook",
-  description: "Quick sale logging for Ada's Beauty Corner.",
+  description: "Quick sale logging for T-Max Store.",
 };
 
 export const viewport: Viewport = {
