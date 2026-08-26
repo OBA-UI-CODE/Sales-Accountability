@@ -18,7 +18,7 @@ export function Sidebar({ profile }: { profile: Profile }) {
         <div className="h-9 w-9 shrink-0 rounded-full bg-accent-blue" />
         <div className="min-w-0">
           <p className="truncate text-sm font-bold text-text-primary">
-            Ada&apos;s Beauty Corner
+            T-Max Store
           </p>
           <p className="text-xs capitalize text-text-secondary">
             {profile.role}

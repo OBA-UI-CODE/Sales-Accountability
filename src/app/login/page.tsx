@@ -1,12 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { login, type LoginState } from "./actions";
 
 const initialState: LoginState = {};
 
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(login, initialState);
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <main className="flex min-h-full flex-1 items-center justify-center bg-surface-base px-6 py-12">
@@ -45,15 +47,31 @@ export default function LoginPage() {
             >
               Password
             </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              className="rounded-[14px] border border-border-subtle bg-surface-input px-4 py-3 text-[15px] text-text-primary placeholder:text-text-muted focus:border-border-accent focus:outline-none"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                required
+                className="w-full rounded-[14px] border border-border-subtle bg-surface-input px-4 py-3 pr-12 text-[15px] text-text-primary placeholder:text-text-muted focus:border-border-accent focus:outline-none"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                tabIndex={-1}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition hover:text-text-secondary"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-[18px] w-[18px]" strokeWidth={2} />
+                ) : (
+                  <Eye className="h-[18px] w-[18px]" strokeWidth={2} />
+                )}
+              </button>
+            </div>
           </div>
 
           {state.error && (
