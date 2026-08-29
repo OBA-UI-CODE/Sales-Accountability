@@ -63,9 +63,11 @@
 html,
 body {
   height: 100%;
+  overflow-x: hidden;
 }
 
 body {
+  width: 100%;
   background: var(--color-surface-base);
   color: var(--color-text-primary);
   font-family: "Roboto", Arial, Helvetica, sans-serif;

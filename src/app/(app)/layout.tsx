@@ -30,9 +30,9 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="flex min-h-full flex-1 bg-surface-base">
+    <div className="flex h-dvh overflow-hidden bg-surface-base">
       <Sidebar profile={profile} />
-      <div className="flex flex-1 flex-col pb-20 md:pb-0">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
         <main className="mx-auto w-full max-w-[1200px] flex-1 px-5 py-6 md:px-12 md:py-10">
           {children}
         </main>

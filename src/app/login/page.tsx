@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <main className="flex min-h-full flex-1 items-center justify-center bg-surface-base px-6 py-12">
+    <main className="flex min-h-dvh flex-1 items-center justify-center bg-surface-base px-6 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="mb-4 h-12 w-12 rounded-full bg-accent-blue" />
