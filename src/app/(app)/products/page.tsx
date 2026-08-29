@@ -21,6 +21,7 @@ export default async function ProductsPage() {
   const { data: products } = await supabase
     .from("products")
     .select("*")
+    .is("archived_at", null)
     .order("name", { ascending: true });
 
   return <ProductsClient products={products ?? []} userId={user!.id} />;

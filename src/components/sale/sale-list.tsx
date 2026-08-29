@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { formatNaira } from "@/lib/currency";
 import { formatTimeLagos } from "@/lib/date";
+import { amountOwed, isDebt } from "@/lib/payment";
+import { PaymentBadge } from "./payment-badge";
 import { EditSaleModal } from "./edit-sale-modal";
 import type { SaleWithRelations } from "@/types/database";
 
@@ -51,9 +53,21 @@ export function SaleList({
                 </p>
               </div>
             </div>
-            <span className="shrink-0 text-sm font-semibold text-text-primary">
-              {formatNaira(sale.total_price)}
-            </span>
+            <div className="flex shrink-0 flex-col items-end gap-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-text-primary">
+                  {formatNaira(sale.total_price)}
+                </span>
+                <PaymentBadge sale={sale} />
+              </div>
+              <p className="max-w-[160px] truncate text-[11px] text-text-muted">
+                {sale.seller?.name ?? "Unknown"}
+                {isDebt(sale) &&
+                  ` · Owes ${formatNaira(amountOwed(sale))}${
+                    sale.debtor_name ? ` · ${sale.debtor_name}` : ""
+                  }`}
+              </p>
+            </div>
           </button>
         ))}
       </div>

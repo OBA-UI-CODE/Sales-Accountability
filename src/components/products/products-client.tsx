@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, PackagePlus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plus, PackagePlus, Trash2 } from "lucide-react";
 import { formatNaira } from "@/lib/currency";
 import { ProductModal } from "./product-modal";
 import { RestockModal } from "./restock-modal";
+import { RemoveProductModal } from "./remove-product-modal";
 import type { Product } from "@/types/database";
 
 export function ProductsClient({
@@ -17,6 +18,14 @@ export function ProductsClient({
   const [editing, setEditing] = useState<Product | null>(null);
   const [adding, setAdding] = useState(false);
   const [restocking, setRestocking] = useState<Product | null>(null);
+  const [removing, setRemoving] = useState<Product | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -85,6 +94,14 @@ export function ProductsClient({
                   >
                     <PackagePlus className="h-4 w-4" />
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setRemoving(p)}
+                    aria-label={`Remove ${p.name}`}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-input text-danger-text"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             );
@@ -104,6 +121,21 @@ export function ProductsClient({
           userId={userId}
           onClose={() => setRestocking(null)}
         />
+      )}
+      {removing && (
+        <RemoveProductModal
+          product={removing}
+          onClose={() => setRemoving(null)}
+          onRemoved={setToast}
+        />
+      )}
+
+      {toast && (
+        <div className="fixed inset-x-0 bottom-24 z-40 flex justify-center px-4 md:bottom-8">
+          <div className="rounded-2xl bg-surface-elevated px-5 py-3 text-sm font-medium text-text-primary shadow-lg">
+            {toast}
+          </div>
+        </div>
       )}
     </div>
   );

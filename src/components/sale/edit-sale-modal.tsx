@@ -6,9 +6,16 @@ import { X, Minus, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { formatNaira } from "@/lib/currency";
 import { formatTimeLagos } from "@/lib/date";
+import { paymentStatus } from "@/lib/payment";
+import { PaymentFields, type PaymentMode } from "./payment-fields";
 import type { Product, SaleWithRelations } from "@/types/database";
 
 type Mode = "catalog" | "manual";
+
+function initialPaymentMode(sale: SaleWithRelations): PaymentMode {
+  const status = paymentStatus(sale);
+  return status === "part_paid" ? "part" : status === "unpaid" ? "unpaid" : "paid";
+}
 
 export function EditSaleModal({
   sale,
@@ -25,6 +32,13 @@ export function EditSaleModal({
   const [customName, setCustomName] = useState(sale.custom_item_name ?? "");
   const [price, setPrice] = useState<string>(String(sale.unit_price));
   const [quantity, setQuantity] = useState(sale.quantity);
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>(
+    initialPaymentMode(sale),
+  );
+  const [amountPaidInput, setAmountPaidInput] = useState(
+    String(sale.amount_paid),
+  );
+  const [debtorName, setDebtorName] = useState(sale.debtor_name ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -71,12 +85,23 @@ export function EditSaleModal({
     !submitting &&
     Number(price) > 0 &&
     quantity > 0 &&
-    (mode === "catalog" ? !!selected : customName.trim().length > 0);
+    (mode === "catalog" ? !!selected : customName.trim().length > 0) &&
+    (paymentMode !== "part" ||
+      (Number(amountPaidInput) > 0 && Number(amountPaidInput) < total));
 
   async function handleSubmit() {
     if (!canSubmit) return;
     setSubmitting(true);
     setError(null);
+
+    const amountPaidValue =
+      paymentMode === "paid"
+        ? total
+        : paymentMode === "part"
+          ? Number(amountPaidInput)
+          : 0;
+    const debtorNameValue =
+      paymentMode === "paid" ? undefined : debtorName.trim() || undefined;
 
     const supabase = createClient();
     const { error } = await supabase.rpc("update_sale", {
@@ -85,6 +110,8 @@ export function EditSaleModal({
       p_custom_item_name: mode === "manual" ? customName.trim() : null,
       p_unit_price: Number(price),
       p_quantity: quantity,
+      p_amount_paid: amountPaidValue,
+      p_debtor_name: debtorNameValue,
     });
 
     setSubmitting(false);
@@ -250,6 +277,16 @@ export function EditSaleModal({
             </div>
           </div>
         </div>
+
+        <PaymentFields
+          mode={paymentMode}
+          setMode={setPaymentMode}
+          amountPaid={amountPaidInput}
+          setAmountPaid={setAmountPaidInput}
+          debtorName={debtorName}
+          setDebtorName={setDebtorName}
+          total={total}
+        />
 
         <div className="mb-6 border-t border-border-subtle pt-6">
           <div className="flex items-center justify-between">

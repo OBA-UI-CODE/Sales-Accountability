@@ -23,6 +23,8 @@
   /* Semantic */
   --color-success-bg: #16321f;
   --color-success-text: #4ade80;
+  --color-warning-bg: #3a2f10;
+  --color-warning-text: #fbbf24;
   --color-danger-bg: #3a1620;
   --color-danger-text: #ff6b6b;
 
@@ -48,6 +50,8 @@
 
   --color-success-bg: var(--color-success-bg);
   --color-success-text: var(--color-success-text);
+  --color-warning-bg: var(--color-warning-bg);
+  --color-warning-text: var(--color-warning-text);
   --color-danger-bg: var(--color-danger-bg);
   --color-danger-text: var(--color-danger-text);
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { X, Minus, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { formatNaira } from "@/lib/currency";
+import { PaymentFields, type PaymentMode } from "./payment-fields";
 import type { Product } from "@/types/database";
 
 type Mode = "catalog" | "manual";
@@ -25,6 +26,9 @@ export function AddSaleModal({
   const [customName, setCustomName] = useState("");
   const [price, setPrice] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>("paid");
+  const [amountPaidInput, setAmountPaidInput] = useState("");
+  const [debtorName, setDebtorName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,6 +37,7 @@ export function AddSaleModal({
     supabase
       .from("products")
       .select("*")
+      .is("archived_at", null)
       .order("name", { ascending: true })
       .then(({ data, error }) => {
         if (!error && data) setProducts(data);
@@ -66,12 +71,23 @@ export function AddSaleModal({
     !submitting &&
     Number(price) > 0 &&
     quantity > 0 &&
-    (mode === "catalog" ? !!selected : customName.trim().length > 0);
+    (mode === "catalog" ? !!selected : customName.trim().length > 0) &&
+    (paymentMode !== "part" ||
+      (Number(amountPaidInput) > 0 && Number(amountPaidInput) < total));
 
   async function handleSubmit() {
     if (!canSubmit) return;
     setSubmitting(true);
     setError(null);
+
+    const amountPaidValue =
+      paymentMode === "paid"
+        ? undefined
+        : paymentMode === "part"
+          ? Number(amountPaidInput)
+          : 0;
+    const debtorNameValue =
+      paymentMode === "paid" ? undefined : debtorName.trim() || undefined;
 
     const supabase = createClient();
     const { error } = await supabase.rpc("create_sale", {
@@ -80,6 +96,8 @@ export function AddSaleModal({
       p_unit_price: Number(price),
       p_quantity: quantity,
       p_sold_by: userId,
+      p_amount_paid: amountPaidValue,
+      p_debtor_name: debtorNameValue,
     });
 
     setSubmitting(false);
@@ -251,6 +269,16 @@ export function AddSaleModal({
             </div>
           </div>
         </div>
+
+        <PaymentFields
+          mode={paymentMode}
+          setMode={setPaymentMode}
+          amountPaid={amountPaidInput}
+          setAmountPaid={setAmountPaidInput}
+          debtorName={debtorName}
+          setDebtorName={setDebtorName}
+          total={total}
+        />
 
         <div className="mb-6 border-t border-border-subtle pt-6">
           <div className="flex items-center justify-between">

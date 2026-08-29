@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSalesForRange } from "@/lib/data/sales";
 import { lagosDayRange, lagosToday } from "@/lib/date";
 import { formatNaira } from "@/lib/currency";
+import { amountOwed } from "@/lib/payment";
 import { SaleList } from "@/components/sale/sale-list";
 import { AddSaleLauncher } from "@/components/sale/add-sale-launcher";
 
@@ -31,6 +32,8 @@ export default async function DashboardPage() {
   const yesterdaySales = await getSalesForRange(supabase, yStart, yEnd);
 
   const totalToday = sales.reduce((sum, s) => sum + s.total_price, 0);
+  const collectedToday = sales.reduce((sum, s) => sum + s.amount_paid, 0);
+  const owedToday = sales.reduce((sum, s) => sum + amountOwed(s), 0);
   const countToday = sales.length;
   const avgSale = countToday ? totalToday / countToday : 0;
   const countDelta = countToday - yesterdaySales.length;
@@ -63,6 +66,12 @@ export default async function DashboardPage() {
           </div>
           <p className="text-[48px] font-bold leading-none text-text-primary">
             {formatNaira(totalToday)}
+          </p>
+          <p className="mt-2 text-xs text-text-muted">
+            {formatNaira(collectedToday)} collected
+            {owedToday > 0
+              ? ` · ${formatNaira(owedToday)} owed`
+              : " · all paid"}
           </p>
           <p className="mt-3 text-sm text-text-muted">
             {countToday} sale{countToday === 1 ? "" : "s"} logged today
