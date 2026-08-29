@@ -37,6 +37,7 @@ export interface Database {
           default_price: number;
           stock_quantity: number;
           low_stock_threshold: number;
+          archived_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -47,6 +48,7 @@ export interface Database {
           default_price?: number;
           stock_quantity?: number;
           low_stock_threshold?: number;
+          archived_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -57,6 +59,7 @@ export interface Database {
           default_price?: number;
           stock_quantity?: number;
           low_stock_threshold?: number;
+          archived_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -70,6 +73,8 @@ export interface Database {
           unit_price: number;
           quantity: number;
           total_price: number;
+          amount_paid: number;
+          debtor_name: string | null;
           sold_by: string;
           sold_at: string;
           edited_at: string | null;
@@ -81,6 +86,8 @@ export interface Database {
           custom_item_name?: string | null;
           unit_price: number;
           quantity?: number;
+          amount_paid?: number;
+          debtor_name?: string | null;
           sold_by: string;
           sold_at?: string;
           edited_at?: string | null;
@@ -92,6 +99,8 @@ export interface Database {
           custom_item_name?: string | null;
           unit_price?: number;
           quantity?: number;
+          amount_paid?: number;
+          debtor_name?: string | null;
           sold_by?: string;
           sold_at?: string;
           edited_at?: string | null;
@@ -165,6 +174,8 @@ export interface Database {
           p_unit_price: number;
           p_quantity: number;
           p_sold_by: string;
+          p_amount_paid?: number | null;
+          p_debtor_name?: string | null;
         };
         Returns: Database["public"]["Tables"]["sales"]["Row"];
       };
@@ -175,12 +186,24 @@ export interface Database {
           p_custom_item_name: string | null;
           p_unit_price: number;
           p_quantity: number;
+          p_amount_paid?: number | null;
+          p_debtor_name?: string | null;
         };
         Returns: Database["public"]["Tables"]["sales"]["Row"];
       };
       delete_sale: {
         Args: { p_sale_id: string };
         Returns: void;
+      };
+      record_payment: {
+        // Pay down a debt. Pass p_pay_full = true to settle the whole
+        // outstanding balance, or p_amount to add a partial payment.
+        Args: {
+          p_sale_id: string;
+          p_amount?: number | null;
+          p_pay_full?: boolean;
+        };
+        Returns: Database["public"]["Tables"]["sales"]["Row"];
       };
       restock_product: {
         Args: {
@@ -189,6 +212,13 @@ export interface Database {
           p_adjusted_by: string;
         };
         Returns: Database["public"]["Tables"]["products"]["Row"];
+      };
+      remove_product: {
+        // Smart removal: hard-deletes a product with no sales history,
+        // otherwise archives it (sets archived_at). Returns 'deleted' or
+        // 'archived'.
+        Args: { p_product_id: string };
+        Returns: string;
       };
     };
     Enums: {
