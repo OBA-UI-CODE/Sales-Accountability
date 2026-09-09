@@ -18,11 +18,24 @@ export default async function ProductsPage() {
     redirect("/");
   }
 
-  const { data: products } = await supabase
-    .from("products")
-    .select("*")
-    .is("archived_at", null)
-    .order("name", { ascending: true });
+  const [{ data: products }, { data: variants }] = await Promise.all([
+    supabase
+      .from("products")
+      .select("*")
+      .is("archived_at", null)
+      .order("name", { ascending: true }),
+    supabase
+      .from("product_variants")
+      .select("*")
+      .is("archived_at", null)
+      .order("created_at", { ascending: true }),
+  ]);
 
-  return <ProductsClient products={products ?? []} userId={user!.id} />;
+  return (
+    <ProductsClient
+      products={products ?? []}
+      variants={variants ?? []}
+      userId={user!.id}
+    />
+  );
 }

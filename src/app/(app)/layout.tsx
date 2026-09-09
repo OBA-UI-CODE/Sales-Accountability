@@ -29,6 +29,16 @@ export default async function AppLayout({
     redirect("/login");
   }
 
+  const { data: settings } = await supabase
+    .from("app_settings")
+    .select("paused_at")
+    .eq("id", true)
+    .maybeSingle();
+
+  if (settings?.paused_at) {
+    redirect("/paused");
+  }
+
   return (
     <div className="flex h-dvh overflow-hidden bg-surface-base">
       <Sidebar profile={profile} />

@@ -9,7 +9,7 @@ export async function getSalesForRange(
   const { data, error } = await supabase
     .from("sales")
     .select(
-      "*, product:products(id,name,category), seller:profiles(id,name)",
+      "*, product:products(id,name,category), variant:product_variants(id,label), seller:profiles(id,name)",
     )
     .gte("sold_at", startISO)
     .lt("sold_at", endISO)
@@ -26,7 +26,7 @@ export async function getAllSales(
   const { data, error } = await supabase
     .from("sales")
     .select(
-      "*, product:products(id,name,category), seller:profiles(id,name)",
+      "*, product:products(id,name,category), variant:product_variants(id,label), seller:profiles(id,name)",
     )
     .order("sold_at", { ascending: false });
 

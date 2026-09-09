@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { SaleList } from "@/components/sale/sale-list";
+import { matchesSearch } from "@/lib/search";
 import type { SaleWithRelations } from "@/types/database";
 
 export function HistoryList({ sales }: { sales: SaleWithRelations[] }) {
@@ -10,12 +11,16 @@ export function HistoryList({ sales }: { sales: SaleWithRelations[] }) {
 
   const filtered = useMemo(() => {
     if (!query.trim()) return sales;
-    const q = query.trim().toLowerCase();
-    return sales.filter((s) => {
-      const itemName = (s.product?.name ?? s.custom_item_name ?? "").toLowerCase();
-      const sellerName = (s.seller?.name ?? "").toLowerCase();
-      return itemName.includes(q) || sellerName.includes(q);
-    });
+    return sales.filter((s) =>
+      matchesSearch(
+        query,
+        s.product?.name,
+        s.custom_item_name,
+        s.variant?.label,
+        s.seller?.name,
+        s.debtor_name,
+      ),
+    );
   }, [sales, query]);
 
   return (

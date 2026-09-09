@@ -4,14 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import type { Product } from "@/types/database";
 
 export function RestockModal({
-  product,
+  target,
   userId,
   onClose,
 }: {
-  product: Product;
+  target: { kind: "product" | "variant"; id: string; name: string; stock_quantity: number };
   userId: string;
   onClose: () => void;
 }) {
@@ -28,15 +27,22 @@ export function RestockModal({
     setError(null);
 
     const supabase = createClient();
-    const { error } = await supabase.rpc("restock_product", {
-      p_product_id: product.id,
-      p_quantity_added: Number(amount),
-      p_adjusted_by: userId,
-    });
+    const { error } =
+      target.kind === "variant"
+        ? await supabase.rpc("restock_variant", {
+            p_variant_id: target.id,
+            p_quantity_added: Number(amount),
+            p_adjusted_by: userId,
+          })
+        : await supabase.rpc("restock_product", {
+            p_product_id: target.id,
+            p_quantity_added: Number(amount),
+            p_adjusted_by: userId,
+          });
 
     setSubmitting(false);
     if (error) {
-      setError("Couldn't restock this product. Try again.");
+      setError("Couldn't restock this item. Try again.");
       return;
     }
     router.refresh();
@@ -59,7 +65,7 @@ export function RestockModal({
         </div>
 
         <p className="mb-6 text-sm text-text-secondary">
-          {product.name} &middot; currently {product.stock_quantity} in stock
+          {target.name} &middot; currently {target.stock_quantity} in stock
         </p>
 
         <label className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-text-muted">

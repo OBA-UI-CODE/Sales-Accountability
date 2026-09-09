@@ -8,6 +8,7 @@ import { formatNaira } from "@/lib/currency";
 import { formatDateLagos } from "@/lib/date";
 import { amountOwed } from "@/lib/payment";
 import { PaymentBadge } from "@/components/sale/payment-badge";
+import { ReceiptButton } from "@/components/sale/receipt-button";
 import { RecordPaymentModal } from "./record-payment-modal";
 import type { SaleWithRelations } from "@/types/database";
 
@@ -68,6 +69,7 @@ export function DebtsList({ sales }: { sales: SaleWithRelations[] }) {
               </div>
 
               <div className="flex shrink-0 gap-2">
+                <ReceiptButton saleId={sale.id} label="Receipt" />
                 <button
                   type="button"
                   onClick={() => setPaying(sale)}

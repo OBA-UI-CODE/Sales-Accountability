@@ -1,7 +1,6 @@
-// Hand-written types matching supabase/migrations/0001_init.sql and
-// 0002_sale_functions.sql. Once the Supabase project is live, regenerate
-// this file with `supabase gen types typescript` (or the Supabase MCP
-// `generate_typescript_types` tool) and it should match closely.
+// Hand-written types matching the supabase/migrations/*.sql files. If you
+// change the schema, regenerate this with `supabase gen types typescript`
+// (or the Supabase MCP `generate_typescript_types` tool) and reconcile.
 
 export type Role = "owner" | "staff";
 
@@ -13,18 +12,21 @@ export interface Database {
           id: string;
           name: string;
           role: Role;
+          removed_at: string | null;
           created_at: string;
         };
         Insert: {
           id: string;
           name: string;
           role: Role;
+          removed_at?: string | null;
           created_at?: string;
         };
         Update: {
           id?: string;
           name?: string;
           role?: Role;
+          removed_at?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -65,10 +67,52 @@ export interface Database {
         };
         Relationships: [];
       };
+      product_variants: {
+        Row: {
+          id: string;
+          product_id: string;
+          label: string;
+          price: number;
+          stock_quantity: number;
+          low_stock_threshold: number;
+          archived_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          product_id: string;
+          label: string;
+          price?: number;
+          stock_quantity?: number;
+          low_stock_threshold?: number;
+          archived_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          product_id?: string;
+          label?: string;
+          price?: number;
+          stock_quantity?: number;
+          low_stock_threshold?: number;
+          archived_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sales: {
         Row: {
           id: string;
           product_id: string | null;
+          variant_id: string | null;
           custom_item_name: string | null;
           unit_price: number;
           quantity: number;
@@ -83,6 +127,7 @@ export interface Database {
         Insert: {
           id?: string;
           product_id?: string | null;
+          variant_id?: string | null;
           custom_item_name?: string | null;
           unit_price: number;
           quantity?: number;
@@ -96,6 +141,7 @@ export interface Database {
         Update: {
           id?: string;
           product_id?: string | null;
+          variant_id?: string | null;
           custom_item_name?: string | null;
           unit_price?: number;
           quantity?: number;
@@ -112,6 +158,13 @@ export interface Database {
             columns: ["product_id"];
             isOneToOne: false;
             referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sales_variant_id_fkey";
+            columns: ["variant_id"];
+            isOneToOne: false;
+            referencedRelation: "product_variants";
             referencedColumns: ["id"];
           },
           {
@@ -162,6 +215,32 @@ export interface Database {
           },
         ];
       };
+      app_settings: {
+        Row: {
+          id: true;
+          paused_at: string | null;
+          paused_by: string | null;
+        };
+        Insert: {
+          id?: true;
+          paused_at?: string | null;
+          paused_by?: string | null;
+        };
+        Update: {
+          id?: true;
+          paused_at?: string | null;
+          paused_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "app_settings_paused_by_fkey";
+            columns: ["paused_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -176,6 +255,7 @@ export interface Database {
           p_sold_by: string;
           p_amount_paid?: number | null;
           p_debtor_name?: string | null;
+          p_variant_id?: string | null;
         };
         Returns: Database["public"]["Tables"]["sales"]["Row"];
       };
@@ -188,6 +268,7 @@ export interface Database {
           p_quantity: number;
           p_amount_paid?: number | null;
           p_debtor_name?: string | null;
+          p_variant_id?: string | null;
         };
         Returns: Database["public"]["Tables"]["sales"]["Row"];
       };
@@ -213,12 +294,32 @@ export interface Database {
         };
         Returns: Database["public"]["Tables"]["products"]["Row"];
       };
+      restock_variant: {
+        Args: {
+          p_variant_id: string;
+          p_quantity_added: number;
+          p_adjusted_by: string;
+        };
+        Returns: Database["public"]["Tables"]["product_variants"]["Row"];
+      };
       remove_product: {
         // Smart removal: hard-deletes a product with no sales history,
-        // otherwise archives it (sets archived_at). Returns 'deleted' or
-        // 'archived'.
+        // otherwise archives it (sets archived_at), along with its variants.
+        // Returns 'deleted' or 'archived'.
         Args: { p_product_id: string };
         Returns: string;
+      };
+      remove_variant: {
+        // Smart removal, same rule as remove_product but for one variant.
+        Args: { p_variant_id: string };
+        Returns: string;
+      };
+      revoke_user_sessions: {
+        // Service-role only. Drops a removed user's live sessions/refresh
+        // tokens immediately, rather than waiting for their access token to
+        // expire on its own.
+        Args: { target_user: string };
+        Returns: number;
       };
     };
     Enums: {
@@ -231,12 +332,16 @@ export interface Database {
 }
 
 export type Product = Database["public"]["Tables"]["products"]["Row"];
+export type ProductVariant =
+  Database["public"]["Tables"]["product_variants"]["Row"];
 export type Sale = Database["public"]["Tables"]["sales"]["Row"];
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type StockAdjustment =
   Database["public"]["Tables"]["stock_adjustments"]["Row"];
+export type AppSettings = Database["public"]["Tables"]["app_settings"]["Row"];
 
 export interface SaleWithRelations extends Sale {
   product: Pick<Product, "id" | "name" | "category"> | null;
+  variant: Pick<ProductVariant, "id" | "label"> | null;
   seller: Pick<Profile, "id" | "name"> | null;
 }

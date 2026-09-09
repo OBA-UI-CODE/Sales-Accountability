@@ -73,6 +73,22 @@ export async function addStaff(
 export async function removeStaff(profileId: string) {
   await requireOwner();
   const admin = createAdminClient();
-  // Deleting the auth user cascades to the profiles row (FK on delete cascade).
-  await admin.auth.admin.deleteUser(profileId);
+
+  /*
+   * Staff are ARCHIVED, not deleted. sales.sold_by references profiles with
+   * NO ACTION, so the database refuses to delete anyone who has actually
+   * logged a sale — deleting the auth user used to fail silently for exactly
+   * those people, since profiles cascades from it. Their name needs to stay
+   * on past sales; only their access should go.
+   */
+  await admin
+    .from("profiles")
+    .update({ removed_at: new Date().toISOString() })
+    .eq("id", profileId);
+
+  // Ban the login (a very long duration stands in for "permanently" — GoTrue
+  // has no dedicated permanent-ban flag) and drop any session already in use,
+  // rather than waiting for its access token to expire on its own.
+  await admin.auth.admin.updateUserById(profileId, { ban_duration: "87600h" });
+  await admin.rpc("revoke_user_sessions", { target_user: profileId });
 }

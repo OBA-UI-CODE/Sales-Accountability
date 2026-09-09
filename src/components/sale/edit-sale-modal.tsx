@@ -8,7 +8,7 @@ import { formatNaira } from "@/lib/currency";
 import { formatTimeLagos } from "@/lib/date";
 import { paymentStatus } from "@/lib/payment";
 import { PaymentFields, type PaymentMode } from "./payment-fields";
-import type { Product, SaleWithRelations } from "@/types/database";
+import type { Product, ProductVariant, SaleWithRelations } from "@/types/database";
 
 type Mode = "catalog" | "manual";
 
@@ -27,8 +27,10 @@ export function EditSaleModal({
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(sale.product_id ? "catalog" : "manual");
   const [products, setProducts] = useState<Product[]>([]);
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [query, setQuery] = useState(sale.product?.name ?? "");
   const [selected, setSelected] = useState<Product | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [customName, setCustomName] = useState(sale.custom_item_name ?? "");
   const [price, setPrice] = useState<string>(String(sale.unit_price));
   const [quantity, setQuantity] = useState(sale.quantity);
@@ -46,19 +48,29 @@ export function EditSaleModal({
 
   useEffect(() => {
     const supabase = createClient();
-    supabase
-      .from("products")
-      .select("*")
-      .order("name", { ascending: true })
-      .then(({ data, error }) => {
-        if (error || !data) return;
-        setProducts(data);
+    Promise.all([
+      supabase.from("products").select("*").order("name", { ascending: true }),
+      supabase
+        .from("product_variants")
+        .select("*")
+        .order("created_at", { ascending: true }),
+    ]).then(([productsRes, variantsRes]) => {
+      if (productsRes.data) {
+        setProducts(productsRes.data);
         if (sale.product_id) {
-          const match = data.find((p) => p.id === sale.product_id);
+          const match = productsRes.data.find((p) => p.id === sale.product_id);
           if (match) setSelected(match);
         }
-      });
-  }, [sale.product_id]);
+      }
+      if (variantsRes.data) {
+        setVariants(variantsRes.data);
+        if (sale.variant_id) {
+          const match = variantsRes.data.find((v) => v.id === sale.variant_id);
+          if (match) setSelectedVariant(match);
+        }
+      }
+    });
+  }, [sale.product_id, sale.variant_id]);
 
   const matches = useMemo(() => {
     if (!query.trim() || selected) return [];
@@ -66,9 +78,20 @@ export function EditSaleModal({
     return products.filter((p) => p.name.toLowerCase().includes(q)).slice(0, 6);
   }, [query, products, selected]);
 
+  const selectedVariants = useMemo(
+    () => (selected ? variants.filter((v) => v.product_id === selected.id) : []),
+    [selected, variants],
+  );
+
   function selectProduct(p: Product) {
     setSelected(p);
     setQuery(p.name);
+    setSelectedVariant(null);
+  }
+
+  function selectVariant(v: ProductVariant) {
+    setSelectedVariant(v);
+    setPrice(String(v.price));
   }
 
   function switchMode(next: Mode) {
@@ -76,6 +99,7 @@ export function EditSaleModal({
     setError(null);
     if (next === "manual") {
       setSelected(null);
+      setSelectedVariant(null);
       setQuery("");
     }
   }
@@ -85,7 +109,9 @@ export function EditSaleModal({
     !submitting &&
     Number(price) > 0 &&
     quantity > 0 &&
-    (mode === "catalog" ? !!selected : customName.trim().length > 0) &&
+    (mode === "catalog"
+      ? !!selected && (selectedVariants.length === 0 || !!selectedVariant)
+      : customName.trim().length > 0) &&
     (paymentMode !== "part" ||
       (Number(amountPaidInput) > 0 && Number(amountPaidInput) < total));
 
@@ -112,6 +138,7 @@ export function EditSaleModal({
       p_quantity: quantity,
       p_amount_paid: amountPaidValue,
       p_debtor_name: debtorNameValue,
+      p_variant_id: mode === "catalog" ? (selectedVariant?.id ?? null) : null,
     });
 
     setSubmitting(false);
@@ -221,6 +248,30 @@ export function EditSaleModal({
                 </ul>
               )}
             </div>
+
+            {selected && selectedVariants.length > 0 && (
+              <div className="mt-3">
+                <label className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+                  Size
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {selectedVariants.map((v) => (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => selectVariant(v)}
+                      className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                        selectedVariant?.id === v.id
+                          ? "border-border-accent bg-accent-blue text-text-primary"
+                          : "border-border-subtle text-text-secondary hover:bg-surface-input"
+                      }`}
+                    >
+                      {v.label} &middot; {formatNaira(v.price)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="mb-6">
