@@ -38,7 +38,7 @@ export function SaleList({
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") setEditing(sale);
             }}
-            className="flex cursor-pointer items-center justify-between gap-4 rounded-[14px] bg-surface-card px-4 py-3.5 text-left transition hover:bg-surface-elevated md:px-5"
+            className="flex min-w-0 cursor-pointer flex-col items-stretch gap-3 overflow-hidden rounded-[14px] bg-surface-card px-4 py-3.5 text-left transition hover:bg-surface-elevated sm:flex-row sm:items-center sm:justify-between sm:gap-4 md:px-5"
           >
             <div className="flex min-w-0 items-center gap-3">
               <div className="h-9 w-9 shrink-0 rounded-full bg-icon-circle-bg" />
@@ -61,15 +61,15 @@ export function SaleList({
                 </p>
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-3">
-              <div className="flex flex-col items-end gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-text-primary">
+            <div className="flex min-w-0 items-end justify-between gap-3 border-t border-border-subtle pt-3 sm:shrink-0 sm:items-center sm:border-0 sm:pt-0">
+              <div className="flex min-w-0 flex-col items-start gap-1 sm:items-end">
+                <div className="flex min-w-0 flex-wrap items-center gap-2 sm:justify-end">
+                  <span className="min-w-0 break-words text-sm font-semibold text-text-primary">
                     {formatNaira(sale.total_price)}
                   </span>
                   <PaymentBadge sale={sale} />
                 </div>
-                <p className="max-w-[160px] truncate text-[11px] text-text-muted">
+                <p className="max-w-full truncate text-[11px] text-text-muted sm:max-w-[160px]">
                   {sale.seller?.name ?? "Unknown"}
                   {isDebt(sale) &&
                     ` · Owes ${formatNaira(amountOwed(sale))}${

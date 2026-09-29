@@ -39,7 +39,7 @@ export default async function HistoryPage({
     : `${formatShortDateLagos(range.labelStart)} – ${formatShortDateLagos(range.labelEnd)}`;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 max-w-full flex-col gap-6 overflow-x-hidden">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h1 className="text-[32px] font-bold text-text-primary">
           Sales History
