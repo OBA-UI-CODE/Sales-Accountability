@@ -11,7 +11,7 @@ export function BottomNav({ profile }: { profile: Profile }) {
   const items = navItemsForRole(profile.role);
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border-subtle bg-surface-elevated px-2 pb-[env(safe-area-inset-bottom)] pt-2 md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border-subtle bg-surface-elevated px-1 pb-[env(safe-area-inset-bottom)] pt-2 md:hidden">
       {items.map((item) => {
         const active =
           item.href === "/"
@@ -21,7 +21,7 @@ export function BottomNav({ profile }: { profile: Profile }) {
           <Link
             key={item.href}
             href={item.href}
-            className="flex flex-1 flex-col items-center gap-1 py-1.5"
+            className="flex min-w-0 flex-1 flex-col items-center gap-1 py-1.5"
           >
             <NavIcon
               icon={item.icon}
@@ -30,7 +30,7 @@ export function BottomNav({ profile }: { profile: Profile }) {
               }`}
             />
             <span
-              className={`text-[11px] font-medium ${
+              className={`max-w-full truncate text-[10px] font-medium ${
                 active ? "text-accent-blue" : "text-text-muted"
               }`}
             >

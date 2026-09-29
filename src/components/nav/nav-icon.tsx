@@ -4,6 +4,7 @@ import {
   Wallet,
   Package,
   Settings,
+  ChartNoAxesCombined,
   type LucideIcon,
 } from "lucide-react";
 import type { NavItem } from "@/lib/nav";
@@ -11,6 +12,7 @@ import type { NavItem } from "@/lib/nav";
 const ICONS: Record<NavItem["icon"], LucideIcon> = {
   home: Home,
   history: History,
+  insights: ChartNoAxesCombined,
   debts: Wallet,
   products: Package,
   settings: Settings,
