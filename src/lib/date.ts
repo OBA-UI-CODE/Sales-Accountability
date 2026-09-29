@@ -46,3 +46,59 @@ export function formatDateLagos(dateStr: string): string {
     year: "numeric",
   }).format(new Date(`${dateStr}T12:00:00${LAGOS_OFFSET}`));
 }
+
+export type ReportPeriod = "day" | "week" | "month";
+
+function toLagosDate(dateStr: string): Date {
+  return new Date(`${dateStr}T00:00:00${LAGOS_OFFSET}`);
+}
+
+function dateKey(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Lagos",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+/** Returns the selected reporting period and the immediately preceding one. */
+export function lagosReportRange(dateStr: string, period: ReportPeriod) {
+  const selected = toLagosDate(dateStr);
+  let start = selected;
+  let end: Date;
+
+  if (period === "week") {
+    const mondayOffset = (selected.getUTCDay() + 6) % 7;
+    start = new Date(selected.getTime() - mondayOffset * 86_400_000);
+    end = new Date(start.getTime() + 7 * 86_400_000);
+  } else if (period === "month") {
+    const [year, month] = dateStr.split("-").map(Number);
+    const nextYear = month === 12 ? year + 1 : year;
+    const nextMonth = month === 12 ? 1 : month + 1;
+    start = new Date(`${year}-${String(month).padStart(2, "0")}-01T00:00:00${LAGOS_OFFSET}`);
+    end = new Date(`${nextYear}-${String(nextMonth).padStart(2, "0")}-01T00:00:00${LAGOS_OFFSET}`);
+  } else {
+    end = new Date(start.getTime() + 86_400_000);
+  }
+
+  const duration = end.getTime() - start.getTime();
+  const previousStart = new Date(start.getTime() - duration);
+
+  return {
+    startISO: start.toISOString(),
+    endISO: end.toISOString(),
+    previousStartISO: previousStart.toISOString(),
+    labelStart: dateKey(start),
+    labelEnd: dateKey(new Date(end.getTime() - 86_400_000)),
+  };
+}
+
+export function formatShortDateLagos(dateStr: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "Africa/Lagos",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(`${dateStr}T12:00:00${LAGOS_OFFSET}`));
+}
